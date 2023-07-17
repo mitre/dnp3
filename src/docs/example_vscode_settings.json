@@ -1,0 +1,6 @@
+{
+    "cmake.additionalCompilerSearchDirs": [
+        "C:/msys64/mingw64/bin/"  // change to your system's mingw64 bin path
+    ],
+    "cmake.generator": "MinGW Makefiles"
+}

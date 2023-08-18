@@ -14,7 +14,7 @@ The following table outlines MITRE ATT&CK for ICS Tactic coverage provided by th
 |Point & Tag Identification| Device Restart/Shutdown  |
 
 ### Compatibility
-The plugin payload(s) currently support deployment to CALDERA agents for the following computer architectures:
+The plugin payload(s) currently support deployment to Caldera agents for the following computer architectures:
 |      |Windows |Linux | Macintosh
 ------:|:------:|:----:|:--------:
 |32-bit|        |      |
@@ -60,7 +60,7 @@ This section describes the main components of the plugin and how they interface.
 ### Block Diagram
 ![DNP3 Block Diagram](assets/dnp3_bd.png)
 
-The DNP3 Plugin introduces several new abilities to the user once installed on the CALDERA server. The abilities execute on the agent and can target any device that acts as a DNP3 Outstation.
+The DNP3 Plugin introduces several new abilities to the user once installed on the Caldera server. The abilities execute on the agent and can target any device that acts as a DNP3 Outstation.
 
 Compatible targets include, but are not limited to: Schweitzer Engineering Laboratories (SEL) devices such as RTACs and Relays, among other local and remote devices and programs that respond to DNP3 data and control commands. This includes the test outstation, if it is run.
 
@@ -88,13 +88,13 @@ This section describes how to initially deploy and execute the abilities present
 ### Deployment
 
 1. Identify the target outstaton you would like to communicate with via DNP3.
-2. Identify a viable host for the CALDERA agent that will be sending DNP3 messages to the target system.
-3. Deploy the CALDERA agent to the viable host.
+2. Identify a viable host for the Caldera agent that will be sending DNP3 messages to the target system.
+3. Deploy the Caldera agent to the viable host.
 4. Run any(*) of the DNP3 plugin abilities listed below to achieve desired impact.
 
 (*) Applicable toggle breaker commands will depend on the target environment (see _"Tripping the Breakers"_ underneath _Source Code_)
 
-*Reference the CALDERA training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via a campaign.*
+*Reference the Caldera training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via a campaign.*
 
 #### DNP3 Sources and Facts
 
@@ -484,4 +484,4 @@ OpenDNP3 is (c) to Green Energy Corp (2010, 2011), Step Function I/O LLC (2013-2
 
 It is licensed under the terms of the [Apache License 2.0](https://github.com/dnp3/opendnp3/blob/release/LICENSE), whose main condition requires "preservation of copyright and license notices."
 
-The CALDERA plugin is named "DNP3" as that is a short identifier of is purpose/scope. The plugin is not produced by Step Function I/O LLC.
+The Caldera plugin is named "DNP3" as that is a short identifier of is purpose/scope. The plugin is not produced by Step Function I/O LLC.

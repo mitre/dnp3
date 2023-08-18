@@ -1,6 +1,6 @@
 # DNP3 Plugin Code
 
-Where possible, the CALDERA for OT plugins leverage open-source libraries and payloads, unifying their exposure through the Caldera Adversary Emulation framework.
+Where possible, the Caldera for OT plugins leverage open-source libraries and payloads, unifying their exposure through the Caldera Adversary Emulation framework.
 
 * The DNP3 plugin is written in C++ using the open-source [OpenDNP3 library](https://github.com/dnp3/opendnp3/tree/release/) - version 3.1.2, which is also the final release of the project.
 

@@ -3,7 +3,7 @@ from plugins.dnp3.app.dnp3_gui import Dnp3GUI
 from plugins.dnp3.app.dnp3_api import Dnp3API
 
 name = 'DNP3'
-description = 'The DNP3 plugin for CALDERA provides adversary emulation abilities specific to the DNP3 control systems protocol.'
+description = 'The DNP3 plugin for Caldera provides adversary emulation abilities specific to the DNP3 control systems protocol.'
 address = '/plugin/dnp3/gui'
 access = BaseWorld.Access.RED
 

@@ -16,7 +16,7 @@
     windows:
       psh:
         cleanup: rm dnp3actions.exe
-        command: |
+        command: >
           .\dnp3actions.exe  #{dnp3.server.ip} -p #{dnp3.server.port} #{dnp3.local.link} #{dnp3.remote.link}
           toggle-sbo-range --start #{dnp3.start.index} --end #{dnp3.end.index} --iterations #{dnp3.operate.iterations}
           --trip-on #{dnp3.trip.on} --trip-off #{dnp3.trip.off} --on-time #{dnp3.on.time} --off-time #{dnp3.off.time}

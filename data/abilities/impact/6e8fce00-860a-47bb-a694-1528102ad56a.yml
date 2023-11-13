@@ -15,7 +15,7 @@
     windows:
       psh:
         cleanup: rm dnp3actions.exe
-        command: |
+        command: >
           .\dnp3actions.exe #{dnp3.server.ip} -p #{dnp3.server.port} #{dnp3.local.link} #{dnp3.remote.link}
           sbo-off --start #{dnp3.start.index} --end #{dnp3.end.index} --step #{dnp3.index.step} -t 1
         payloads:

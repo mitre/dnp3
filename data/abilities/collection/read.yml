@@ -1,0 +1,83 @@
+- id: 689ee6dd-9f24-352f-90da-8d06fae7d19c
+  name: DNP3 (TCP) - Read
+  description: Read the specified values from the outstation.
+  tactic: collection
+  technique_id: T0861
+  technique_name: Point & Tag Identification
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3
+
+- id: 362e0b9e-96eb-49eb-90db-a1092704ff5e
+  name: DNP3 (Serial) - Read
+  description: Read the specified values from the outstation.
+  tactic: collection
+  technique_id: T0861
+  technique_name: Point & Tag Identification
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3

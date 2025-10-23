@@ -1,0 +1,78 @@
+--- 
+
+id: 531c81f1-51d7-427f-ba0a-3faf0fd509b3
+name: DNP3 Sample Facts
+facts:
+
+# CONNECTION FACTS
+
+- trait: dnp3.server.ip # IP address of the outstation
+  value: 127.0.0.1
+- trait: dnp3.server.serial_device # Device name of serial connection
+  value: COM1
+- trait: dnp3.server.port # Port of the outstation
+  value: 20000
+- trait: dnp3.local.link # DNP3 link layer address of the local device (int)
+  value: 1
+- trait: dnp3.remote.link # DNP3 link layer address of the remote device (int)
+  value: 1024
+- trait: dnp3.data.group # DNP3 datatype (int)
+  value: 1
+- trait: dnp3.data.start # First index to read (int)
+  value: 0
+- trait: dnp3.data.end # Final index to read (int)
+  value: 3
+
+# OPERATE FACTS
+
+- trait: dnp3.operate.indices # Indices to send the CROB to (comma-separated list of ints)
+  value: 1
+- trait: dnp3.operate.mode # DNP3 Operate Mode
+  value: SELECT_BEFORE_OPERATE
+- trait: dnp3.operate.mode # DNP3 Operate Mode
+  value: DIRECT_OPERATE
+- trait: dnp3.operate.type # DNP3 Op Type
+  value: LATCH_ON
+- trait: dnp3.operate.type # DNP3 Op Type
+  value: LATCH_OFF
+- trait: dnp3.operate.type # DNP3 Op Type
+  value: PULSE_ON
+- trait: dnp3.operate.tcc # DNP3 Trip Close Code
+  value: NUL
+- trait: dnp3.operate.tcc # DNP3 Trip Close Code
+  value: CLOSE
+- trait: dnp3.operate.tcc # DNP3 Trip Close Code
+  value: TRIP
+
+# ANALOG FACTS
+
+- trait: dnp3.analog.indices # Indices for analog write (comma-separated list of ints)
+  value: 1
+- trait: dnp3.analog.values # Values for analog write (comma-separated list of floats)
+  value: 100
+- trait: dnp3.analog.dtype # Datatype of destination point
+  value: INT16
+- trait: dnp3.analog.dtype # Datatype of destination point
+  value: INT32
+- trait: dnp3.analog.dtype # Datatype of destination point
+  value: FLOAT32
+- trait: dnp3.analog.dtype # Datatype of destination point
+  value: DOUBLE64
+
+# TOGGLE FACTS
+
+- trait: dnp3.toggle.indices # Indices to toggle in two-output model (comma-separated list of ints)
+  value: 5
+- trait: dnp3.toggle.trip_indices # Indices to send trip signal in activation model (comma-separated list of ints)
+  value: 10
+- trait: dnp3.toggle.close_indices # Indices to send close signal in activation model (comma-separated list of ints)
+  value: 11
+- trait: dnp3.toggle.iterations # Iterations to toggle
+  value: 2
+- trait: dnp3.toggle.delay_ms # Delay between each toggle step
+  value: 2000
+
+# MISC
+
+- trait: dnp3.message.classes # Used to control unsolicited messages
+  value: 1,2,3

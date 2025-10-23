@@ -1,4 +1,7 @@
 <div>
+    <div class="banner">
+        <p class="banner-text">Warning: You are using an outdated version of Caldera. Please update to the latest version for critical security patches and new features.</p>
+    </div>
     <div>
         <h2>{{ name }} Protocol Plugin</h2>
         <p>{{ description }}</p>
@@ -10,48 +13,58 @@
         <a href="/docs/plugins/{{ name.lower() }}/{{ name.lower() }}.html" target="_blank">{{ name }} Plugin Fieldmanual</a>.
     </p>
     <h3>Abilities</h3>
-    <div class="columns abilities is-multiline">
-        {% for a in abilities %}
-            <div class="column is-one-quarter p-1 m-0">
-                <div class="box otbox p-3 m-1" @mouseleave="handleBoxExit">
+    <table class="table abilities-table">
+        <thead>
+            <tr class="table-header">
+                <th>Name</th>
+                <th>ATT&amp;CK Technique</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for a in abilities %}
+            <tr>
+                <td>{{a.name}}</td>
+                <td>
                     <div class="abilitytags">
                         <span class="tag tactic is-dark m-0 mb-1">{{a.tactic}}</span><br>
                     </div>
-                    <div class="inner_otbox">
-                        <p>
-                            <span class="has-text-weight-bold">{{a.name}}</span>
-                            ({{a.technique_id}}: {{a.technique_name}})
-                        </p>
-                        <p class="help mb-0">{{a.description|safe}}</p>
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
-    </div>
+                    {{a.technique_name}} ({{a.technique_id}})
+                </td>
+                <td>{{a.description|safe}}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
     <h3>Adversaries</h3>
     <p>There are no custom {{ name }} adversaries at this time.</p>
 </div>
 
-<script>
-
-function handleBoxExit(e){
-    e.target.scrollTo({top: 0, behavior: 'smooth'});
+<style scoped>
+.abilities-table td:nth-child(1) { /* Ability name column */
+    font-weight: bold;
 }
-</script>
-
-<style>
-.otbox{
-    height: 200px;
+.abilities-table td:nth-child(3) { /* Description column */
+    width: 40%;
+}
+.abilities-table tbody tr:nth-child(odd) {
     background-color: var(--primary-color-translucent);
-    overflow-y: hidden;
 }
-.otbox:hover{
-    outline: 3px;
-    outline-color: var(--primary-color);
-    outline-style: solid;
-    overflow-y: scroll;
+.abilities-table tbody tr:hover {
+    background-color: var(--primary-color);
 }
-.inner_otbox{
-    margin-right: 15px;
+.banner {
+    background-color: #ffcc00;
+    color: #333;
+    text-align: center;
+    padding: 15px 0;
+    margin-bottom: 15px;
+    z-index: 1000;
+}
+.banner-text {
+    margin: 0;
+    font-size: 16px;
+    font-weight: bold;
 }
 </style>

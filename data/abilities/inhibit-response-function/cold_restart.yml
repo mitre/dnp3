@@ -1,0 +1,83 @@
+- id: dc63f93b-cedd-4bc3-be76-2ae6c1e889a0
+  name: DNP3 (TCP) - Cold Restart
+  description: Perform cold restart of the outstation.
+  tactic: inhibit-response-function 
+  technique_id: T0816
+  technique_name: Device Restart/Shutdown
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3
+
+- id: 7486e22f-c16a-418b-a988-a26cc04f4b40
+  name: DNP3 (Serial) - Cold Restart
+  description: Perform cold restart of the outstation.
+  tactic: inhibit-response-function 
+  technique_id: T0816
+  technique_name: Device Restart/Shutdown
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      cold-restart
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3

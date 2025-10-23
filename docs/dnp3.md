@@ -1,484 +1,1504 @@
 # DNP3
+The DNP3 plugin for Caldera provides adversary emulation abilities specific to the DNP3 control systems protocol.
 
-DNP3 (Distributed Network Protocol 3) Protocol Threat Emulation Tooling
+v2.0 released 05 Dec 2024
 
 ## Overview
+The DNP3 plugin provides __11__ unique abilities specific to the DNP3 protocol offered for both serial and TCP connections (22 total abilities). This is accomplished not through exploitation, but rather by leveraging native functionality within the protocol. 
 
-The DNP3 plugin provides adversary emulation abilities specific to the DNP3 protocol.  The standard, IEEE Std 1815, for the DNP3 protocol requires [DNP Users Group](https://www.dnp.org/) membership to access. For a basic technical overview see "A DNP3 Protocol Primer" [referenced here](#additional-resources).
+The following table outlines MITRE ATT&CK for ICS coverage provided by the DNP3 plugin.
 
-The following table outlines MITRE ATT&CK for ICS Tactic coverage provided by the DNP3 plugin:
-
-|Collection                |Inhibit Response Function |Impact
-:--------------------------|:-------------------------|:-
-|Automated Collection      | Block Reporting Message  | Manipulation of Control
-|Point & Tag Identification| Device Restart/Shutdown  |
-
-### Compatibility
-The plugin payload(s) currently support deployment to Caldera agents for the following computer architectures:
-|      |Windows |Linux | Macintosh
-------:|:------:|:----:|:--------:
-|32-bit|        |      |
-|64-bit| **X**  |      |
-
-
-* The windows payload was compiled with Windows 10 v21H2 using VSCode v1.67.1 with CMake v3.26.4.
+| [Collection](#collection-abilities) | [Inhibit Response Function](#inhibit-response-function-abilities) | [Impair Process Control](#impair-process-control-abilities) |
+|:--|:--|:--|
+| Automated Collection       | Device Restart/Shutdown | Unauthorized Command Message | 
+| Point & Tag Identification | Block Reporting Message |       Modify Parameter       |
+|                            | Denial of Service       |                              |
 
 ### Ability Overview Tables
-The following tables list each plugin ability by their corresponding tactic. A heatmap of plugin abilities is available to view [here](assets/heatmap.PNG).
+The following table(s) list each plugin ability by their corresponding tactic.
 
-#### **Collection Abilities** 
+#### Collection Abilities
+| Ability | Technique | Technique Id |
+|:--|:--|:--|
+|[DNP3 - Read](#dnp3---read)|Point & Tag Identification|T0861|
+|[DNP3 - Read All](#dnp3---read-all)|Point & Tag Identification|T0861|
+|[DNP3 - Integrity Poll](#dnp3---integrity-poll)|Automated Collection|T0802|
+|[DNP3 - Enable Unsolicited Messages](#dnp3---enable-unsolicited-messages)|Automated Collection|T0802|
 
-| Name 	                | Tactic 	        | Technique |  Technique ID     |
-|---------              |---------	        |---------	|---------	        |
-| [DNP3 Read](#read)             | Collection       	| Automated Collection  |  T0802    |
-| [DNP3 Integrity Poll](#integrity-poll)   | Collection      	| Point & Tag Identification |  T0861    |
-| [DNP3 Enable Unsolicited Messages](#enable-unsolicited-messages) | Collection |  Automated Collection  | T0802    |
+#### Inhibit Response Function Abilities
+| Ability | Technique | Technique Id |
+|:--|:--|:--|
+|[DNP3 - Cold Restart](#dnp3---cold-restart) | Device Restart/Shutdown | T0816 |
+|[DNP3 - Warm Restart](#dnp3---warm-restart) | Device Restart/Shutdown | T0816 |
+|[DNP3 - Disable Unsolicited Messages](#dnp3---disable-unsolicited-messages) | Block Reporting Message | T0804 |
 
-#### **Inhibit Response Function Abilities**
+#### Impair Process Control Abilities
+| Ability | Technique | Technique Id |
+|:--|:--|:--|
+|[DNP3 - Operate](#dnp3---operate)|Unauthorized Command Message|T0855|
+|[DNP3 - Toggle (Two-Output Model)](#dnp3---toggle-two-output-model)|Unauthorized Command Message|T0855|
+|[DNP3 - Toggle (Activation Model)](#dnp3---toggle-activation-model)|Unauthorized Command Message|T0855|
+|[DNP3 - Set Analog](#dnp3---set-analog)|Modify Parameter|T0836|
 
-| Name 	                | Tactic 	        | Technique |  Technique ID     |
-|---------              |---------	        |---------	|---------	        |
-| [DNP3 Cold Restart](#cold-restart)     | Inhibit Response Function | Device Restart/Shutdown   |  T0816 |
-| [DNP3 Warm Restart](#warm-restart)     | Inhibit Response Function | Device Restart/Shutdown   |  T0816 |
-| [DNP3 Disable Unsolicited Messages](#disable-unsolicited-messages) | Inhibit Response Function | Block Reporting Message   |  T0804 |
-
-#### **Impact Abilities**
-
-| Name 	                | Tactic 	        | Technique |  Technique ID     |
-|---------              |---------	        |---------	|---------	        |
-| [DNP3 Ranged Modulate Breaker SBO](#ranged-modulate-breaker-select-before-operate) | Impact | Manipulation of Control | T0831 |
-| [DNP3 Modulate Breaker SBO](#modulate-breaker-select-before-operate) | Impact | Manipulation of Control | T0831 |
-| [DNP3 Toggle OFF Breakers SBO](#toggle-off-breakers-select-before-operate) | Impact | Manipulation of Control |  T0831 |
-| [DNP3 Toggle ON Breakers SBO](#toggle-on-breakers-select-before-operate) | Impact | Manipulation of Control |  T0831 |
-| [DNP3 Modulate Breaker DO](#modulate-breaker-direct-operate) | Impact | Manipulation of Control | T0831 |
-| [DNP3 Toggle OFF Breakers DO](#toggle-off-breakers-direct-operate) | Impact | Manipulation of Control |  T0831 |
-| [DNP3 Toggle ON Breakers DO](#toggle-on-breakers-direct-operate) | Impact | Manipulation of Control |  T0831 |
 
 ## Architecture
 This section describes the main components of the plugin and how they interface.
 
 ### Block Diagram
-![DNP3 Block Diagram](assets/dnp3_bd.png)
+![block diagram](./assets/dnp3_bd.png)
 
-The DNP3 Plugin introduces several new abilities to the user once installed on the Caldera server. The abilities execute on the agent and can target any device that acts as a DNP3 Outstation.
-
-Compatible targets include, but are not limited to: Schweitzer Engineering Laboratories (SEL) devices such as RTACs and Relays, among other local and remote devices and programs that respond to DNP3 data and control commands. This includes the test outstation, if it is run.
+The DNP3 plugin exposes several new protocol specific abilities to your Caldera instance. The abilities are executed from a host running a Caldera agent via the corresponding payload. Abilities must target devices that support the DNP3 protocol to achieve described effects.
 
 ### Payloads
-
-The DNP3 plugin leverages one primary payload based on OpenDNP3 detailed in the [libraries](#libraries) section, although three binaries from the `dnp3` src code are available for use:
-
-Payload:
-* `dnp3actions.exe`: &emsp; CLI enabling all the  DNP3 threat emulation actions (protocol functionality) described under Ability Overviews.
-* `dnp3poll.exe`: &emsp; A test polling (master) application
-* `dnp3server.exe`: &emsp; A test server (outstation) application
+The DNP3 plugin includes one payload that implements the abilities, compiled for three different host architectures:
+- `dnp3-actions.exe` (Windows)
+- `dnp3-actions` (Linux)
+- `dnp3-actions_darwin` (Mac) 
 
 ### Libraries
+The following libraries were used to build the DNP3 payloads:  
 
-The following libraries were used to build the DNP3 payloads:
-
-| Library | Version	 | License |
-|---------|--------- |---------|
-|opendnp3 |[3.1.2](https://github.com/dnp3/opendnp3/releases/tag/3.1.2) |[Apache](https://github.com/dnp3/opendnp3/blob/release/LICENSE)      |
+|Library|Version|License|
+|:--|:--|:--|
+|OpenDNP3|[v3.1.2](https://github.com/dnp3/opendnp3)|[Apache 2.0](https://github.com/dnp3/opendnp3/blob/release/LICENSE)|
+|CLI11|[v2.4.2](https://github.com/CLIUtils/CLI11)|[License](https://github.com/CLIUtils/CLI11/blob/main/LICENSE)|
 
 ## Usage
-
-This section describes how to initially deploy and execute the abilities present within the DNP3 plugin.
+This section describes how to initially deploy and execute the abilities present within the DNP3 Plugin.
 
 ### Deployment
-
-1. Identify the target outstaton you would like to communicate with via DNP3.
-2. Identify a viable host for the Caldera agent that will be sending DNP3 messages to the target system.
+1. Identify the target system you would like to communicate with via the DNP3 protocol.
+2. Identify a viable host for the Caldera agent that will be sending DNP3 messages to the target system. viable host for the Caldera agent that will be sending DNP3 messages to the target system.
 3. Deploy the Caldera agent to the viable host.
-4. Run any(*) of the DNP3 plugin abilities listed below to achieve desired impact.
+4. Run a combination of the DNP3 plugin abilities to achieve the desired effect.  
 
-(*) Applicable toggle breaker commands will depend on the target environment (see _"Tripping the Breakers"_ underneath _Source Code_)
+```{tip}
+Reference the Caldera training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via an operation.
+```
 
-*Reference the Caldera training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via a campaign.*
 
-#### DNP3 Sources and Facts
+### Test Server (Outstation) Usage
+This plugin includes a test server (known in DNP3 parlance as an outstation) in the `plugins/` directory that can be used to create a test environment for the plugin.
 
-The following Facts are used by DNP3 plugin abilities:
+1. Start the Caldera server and deploy a Caldera agent.
+2. On the device where the agent is running, start the DNP3 server using the following commands:
 
-Key:
-- [-] = Ability does not use this fact
-- [**X**] = Ability uses this fact
-- UM = Unsolicited Messages
+<details open>
+<summary>Windows (psh)</summary>
 
-* **Table 1** Facts specific to non-Impact Abilities
+```powershell
+.\dnp3-outstation.exe --tui
+```
+</details>
+<details>
+<summary>Linux (sh)</summary>
 
-| Fact Name/Ability Used By | Read	| Intregrity Poll   | Enable UM           | Disable UM      | Warm Restart    | Cold Restart |
-|---------             |---------	  |---------	        |---------	          |---------        |---------        |---------     |
-| dnp3.server.id       | [**X**]        | [**X**]       | [**X**]             | [**X**]         | [**X**]         | [**X**]      |
-| dnp3.server.port     | [**X**]        | [**X**]       | [**X**]             | [**X**]         | [**X**]         | [**X**]      |
-| dnp3.local.link      | [**X**]        | [**X**]       | [**X**]             | [**X**]         | [**X**]         | [**X**]      |
-| dnp3.remote.link     | [**X**]        | [**X**]       | [**X**]             | [**X**]         | [**X**]         | [**X**]      |
-| dnp3.object.group    | [**X**]        | [-]           | [-]                 | [-]             | [-]             | [-]          |
-| dnp3.object.variation| [**X**]        | [-]           | [-]                 | [-]             | [-]             | [-]          |
-| dnp3.start.index     | [**X**]        | [-]           | [-]                 | [-]             | [-]             | [-]          |
-| dnp3.end.index       | [**X**]        | [-]           | [-]                 | [-]             | [-]             | [-]          |
-| dnp3.message.class1  | [-]            | [-]           | [**X**]             | [**X**]         | [-]             | [-]          |
-| dnp3.message.class2  | [-]            | [-]           | [**X**]             | [**X**]         | [-]             | [-]          |
-| dnp3.message.class3  | [-]            | [-]           | [**X**]             | [**X**]         | [-]             | [-]          |
+```sh
+./dnp3-outstation --tui
+```  
 
-* **Table 2** Facts specific to Impact Abilities
+</details>
+<details>
+<summary>Darwin (sh)</summary>
 
-Additional Key:
-- RM = Ranged Modulate Breaker
-- MB = Modulate Breaker
-- SBO = Select-before-Operate
-- DO = Direct Operate
+```sh
+./dnp3-outstation_darwin --tui
+```  
 
-* The "Breaker" after Toggle OFF/ON is ommitted to save space
+</details>
+<br>
 
-| Fact Name/Ability Used By | RMB SBO	| MB SBO | Toggle OFF SBO | Toggle ON SBO | MB DO       | Toggle OFF DO| Toggle ON DO |
-|---------             |---------	    |---------  |---------	  |---------      |---------    |---------     |--------      |
-| dnp3.server.id       | [**X**]       | [**X**]  | [**X**]     | [**X**]       | [**X**]     | [**X**]      |[**X**]       |
-| dnp3.server.port     | [**X**]       | [**X**]  | [**X**]     | [**X**]       | [**X**]     | [**X**]      |[**X**]       |
-| dnp3.local.link      | [**X**]       | [**X**]  | [**X**]     | [**X**]       | [**X**]     | [**X**]      |[**X**]       |
-| dnp3.remote.link     | [**X**]       | [**X**]  | [**X**]     | [**X**]       | [**X**]     | [**X**]      |[**X**]       |
-| dnp3.start.index     | [**X**]       | [-]      | [**X**]     | [**X**]       | [-]         | [**X**]      |[**X**]       |
-| dnp3.end.index       | [**X**]       | [-]      | [**X**]     | [**X**]       | [-]         | [**X**]      |[**X**]       |
-| dnp3.server.index    | [**X**]       | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
-| dnp3.operate.iterations    | [**X**] | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
-| dnp3.index.step  | [-]               | [-]      | [**X**]     | [**X**]       | [-]         | [-]          |[-]           |
-| dnp3.trip.on     | [**X**]           | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
-| dnp3.trip.off    | [**X**]           | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
-| dnp3.on.time     | [**X**]           | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
-| dnp3.off.time    | [**X**]           | [**X**]  | [-]         | [-]           | [**X**]     | [-]          |[-]           |
+3. Execute a DNP3 ability from your agent using the Caldera server. "DNP3 (TCP) - Integrity Poll" is a good first test. To target the DNP3 test server, ensure you select the following facts:
+  - `dnp3.server.ip`: 127.0.0.1
+  - `dnp3.link.local`: 1
+  - `dnp3.link.remote`: 1024
 
-#### Sample Facts - DNP3
-    ...
-    name: DNP3 Sample Facts
-    facts:
-    - trait: dnp3.server.ip
-      value: '127.0.0.1'
-    - trait: dnp3.server.port
-      value: 20000
-    - trait: dnp3.local.link
-      value: 1
-    - trait: dnp3.remote.link
-      value: 10
-    ...
+4. The outstation is designed to demonstrate the different features and concepts in the DNP3 protocol and is not intended to be an authentic replica of any specific device. Try discovering data on the device, reading and writing analog values, and operating points with different operation types and trip control codes. 
 
-Read more about [facts](https://caldera.readthedocs.io/en/latest/Basic-Usage.html?highlight=fact#facts) in the Caldera documentation.
+### Network Connection
 
-#### Trip Codes
-The Trip Close codes when pulsing the breaker are mapped as follows:
-* NUL = 0
-* CLOSE = 1
-* TRIP = 2
+This plugin allows the agent to send DNP3 messages using a **IP/TCP** or **serial** connection. The first argument to the `dnp3-actions` payload selects the connection type. This must be followed by several additional arguments to establish the connection.
 
-In some Abilities, the command has included a hard-coded trip code, for example:
-* `Select-before-Operate Pulse On` has `-t 1` (CLOSE)
-* `Select-before-Operate Pulse Off` has `-t 2` (TRIP)
+#### IP/TCP
 
-If you are unsure what trip codes are used within your enviroment, one recommendation is to capture traffic when issuing a valid command. For example, examining a pcap taken using Wireshark.
+__Positional arguments (required):__
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
 
-#### Additional Resources:
-Here is a small selection of resources to aid in understanding of the DNP3 protocol. You may already have more specific specification documents, vendor manuals, and other resources to assist with understanding the state of your target environment.
+__Flags (optional):__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
 
-* ["A DNP3 Protocol Primer" (DNP3 Users Group)](https://www.dnp.org/Portals/0/AboutUs/DNP3%20Primer%20Rev%20A.pdf)
-* ["Technical Note: DNP3 & Control Relay Output Block Command" (Kepware)](https://www.kepware.com/getattachment/ae44d711-0ccb-4cf3-b1e5-6a914bd9b25e/DNP3-Control-Relay-Output-Block-Command.pdf)
-  * Explains the different combinations of OperateType, TripCloseCode, and Clear bits
+#### Serial
+
+__Positional arguments (required):__
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+
+__Flags (optional):__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
 
 ### Abilities
 
-#### Read
+#### DNP3 - Read
+Read the specified values from the outstation.  
+
+```{seealso}
+For more information, see the [Data Model](#data-model) section.
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.data.group` | DNP3 datatype | int  |
+| `dnp3.data.start` | First index to read (inclusive) | int |
+| `dnp3.data.end` | Final index to read (inclusive) | int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--variation` | variation (format) to read the data | int | None |
+</details>
+
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} --start #{dnp3.data.start} --end #{dnp3.data.end}
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.data.group` | DNP3 datatype | int  |
+| `dnp3.data.start` | First index to read (inclusive) | int |
+| `dnp3.data.end` | Final index to read (inclusive) | int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--variation` | variation (format) to read the data | int | None |
+</details>
+<br>
+
+#### DNP3 - Read All
+Read the specified values from a certain group of the outstation.  
+
+```{seealso}
+For more information, see the [Data Model](#data-model) section.
+```
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} 
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} 
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group}
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.data.group` | DNP3 datatype | int  |
+| `dnp3.data.variation` | Variation of the DNP3 datatype (group) | int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--variation` | variation (format) to read the data | int | None |
+</details>
+
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} 
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group} 
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} read #{dnp3.data.group}
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.data.group` | DNP3 datatype | int  |
+| `dnp3.data.variation` | Variation of the DNP3 datatype (group) | int |
+| `dnp3.data.start` | First index to read (inclusive) | int |
+| `dnp3.data.end` | Final index to read (inclusive) | int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--variation` | variation (format) to read the data | int | None |
+</details>
+<br>
+
+#### DNP3 - Integrity Poll
+Read all data groups present on the outstation.  
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+</details>
+
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} integrity-poll
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+</details>
+<br>
+
+#### DNP3 - Operate
+Operate specified points utilizing SELECT_BEFORE_OPERATE (SBO) or DIRECT_OPERATE (DO)
+
+```{seealso}
+For more information on operating points in DNP3 see the [Control Models](#control-models) section.
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--count` | times to repeat signal | int | 1 |
+| `--clear` | set the control code clear bit | string | 
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} #{dnp3.op.mode} --indices #{dnp3.operate.indices} --op-type #{dnp3.operate.type} --tcc #{dnp3.operate.tcc}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--count` | times to repeat signal | int | 1 |
+| `--clear` | set the control code clear bit | string | 
+</details>
+<br>
+
+#### DNP3 - Toggle (Activation Model)
+Toggle breakers using the activation model (Utilizing trip-indices and close-indices)
+
+```{seealso}
+For more information on operating points in DNP3 see the [Control Models](#control-models) section.
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.trip.indices` | Trip-indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.close.indices` | Close-indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--iterations` | times to repeat signal | int | 1 |
+| `--delay` | delay between trip and close operations in ms | int | 30000 |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-activation #{dnp3.op.mode} --trip-indices #{dnp3.trip.indices} --close-indices #{dnp3.close.indices}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.trip.indices` | Trip-indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.close.indices` | Close-indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--iterations` | times to repeat signal | int | 1 |
+| `--delay` | delay between trip and close operations in ms | int | 30000 |
+</details>
+<br>
+
+#### DNP3 - Toggle (Two Output Model)
+Toggle breakers using the complementary two-output model (Utilizing TRIP/CLOSE on the same index)
+
+```{seealso}
+For more information on operating points in DNP3 see the [Control Models](#control-models) section.
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--iterations` | times to repeat signal | int | 1 |
+| `--delay` | delay between trip and close operations in ms | int | 30000 |
+</details>
+
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} toggle-two-output #{dnp3.op.mode} --indices #{dnp3.operate.indices}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.operate.mode` | Choose either SBO or DO Mode | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.operate.type` | One of 'NUL', 'PULSE_ON', 'PULSE_OFF', 'LATCH_ON', 'LATCH_OFF' | string |
+| `dnp3.operate.tcc` | One of 'NUL', 'CLOSE', 'TRIP' | string |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--on`| signal on-time value in ms | int | 100 |
+| `--off`| signal off-time value in ms | int | 100 |
+| `--iterations` | times to repeat signal | int | 1 |
+| `--delay` | delay between trip and close operations in ms | int | 30000 |
+</details>
+<br>
+
+#### DNP3 - Set Analog
+Change the values of specified points
+
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.ip` | IP address of the outstation | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.set.analog` | Set analog output values command | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.set.values` | Set values to output on specified point | comma separated list of int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | Port number of the outstation | int | 20000 |
+| `--dtype`| Datatype of values | string | 'DOUBLE64' |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<details>
+<summary>Linux (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<details>
+<summary>Darwin (psh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} set-analog --indices #{dnp3.operate.indices} --values {dnp3.set.values}
+```
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type |
+|:-----|:------------|:----:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int |
+| `dnp3.set.analog` | Set analog output values command | string |
+| `dnp3.operate.indices` | Indices to send the CROB to (operate) | comma separated list of int |
+| `dnp3.set.values` | Set values to output on specified point | comma separated list of int |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--dtype`| Datatype of values | string | 'DOUBLE64' |
+</details>
+<br>
+
+#### DNP3 - Cold Restart
+Perform a full restart (cold restart) of the outstation. 
+
+```{caution}
+May leave the outstation in an unknown or invalid state
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.ip` | IP address of the outstation | string  | None |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} cold-restart
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+</details>
+<br>
+
+#### DNP3 - Warm Restart
+Perform a partial restart (warm restart) of the outstation. DNP3 applications
+will be reset but not affect other processes. Sometimes, this may revert values
+to defaults or reset to a known configuration.
+
+```{caution}
+May leave the outstation in an unknown or invalid state
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.ip` | IP address of the outstation | string  | None |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} warm-restart
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+</details>
+<br>
+
+#### DNP3 - Disable Unsolicited Messages
+Disable unsolicited messages on the outstation. May prevent clients connected to
+the outstation from receiving event data that would otherwise be self-reported
+by the outstation.
+
+```{seealso}
+[Enable Unsolicited Messages](#dnp3---enable-unsolicited-messages) Ability 
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<br
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.ip` | IP address of the outstation | string  | None |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--classes` | space separated list of classes to disable | string | '1,2,3' |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} disable-unsolicited
+```  
+
+</details>
+<br
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--classes` | space separated list of classes to disable | string | '1,2,3' |
+</details>
+<br>
+
+#### DNP3 - Enable Unsolicited Messages
+Enable unsolicited messages on the outstation. 
+
+```{seealso}
+[Disable Unsolicited Messages](#dnp3---disable-unsolicited-messages) Ability 
+```
+
+<details open>
+<summary><strong>TCP</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.ip` | IP address of the outstation | string  | None |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-p`, `--port` | port number of the outstation | int | 20000 |
+| `--classes` | space separated list of classes to disable | string | '1,2,3' |
+</details>
+<details>
+<summary><strong>Serial</strong></summary>
+<br>
+
+__Ability Command:__
+<details open>
+<summary>Windows (cmd/psh)</summary>
+<br>
+
+```caldera
+.\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Linux (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<details>
+<summary>Darwin (sh)</summary>
+<br>
+
+```caldera
+./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link} enable-unsolicited
+```  
+
+</details>
+<br>
+
+__Facts:__  
+| Name | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `dnp3.server.serial_device` | Serial device name (e.g. COM1, /dev/ttyS0) | string  |
+| `dnp3.local.link` | DNP3 link layer address of the local device | int | None |
+| `dnp3.remote.link` | DNP3 link layer address of the remote device | int | None |
+
+__Optional Flags:__
+| Flag | Description | Type | Default |
+|:-----|:------------|:----:|:-------:|
+| `-b`,`--baud` | baud rate of the serial device | int | 9600 |
+| `--databits` | data bits | int | 8 |
+| `--stopbits` | stop bits, one of: 'One', 'OnePointFive', 'Two', 'None' | string | 'One' |
+| `--parity` | parity, one of: 'Even', 'Odd', 'None' | string | 'None' |
+| `--flowtype` | flow control setting, one of 'Hardware', 'XONXOFF', 'None' | string | 'None' |
+| `--delay` | delay time in milliseconds before first tx | int | 500 |
+| `--classes` | space separated list of classes to disable | string | '1,2,3' |
+</details>
+<br>
+
+### DNP3 Protocol Notes
+
+#### Data Model
+When reading data from a DNP3 outstation, the user must specify the 'Group' and
+'Variation' to read. The 'Group' can be thought of as similar to a datatype (see
+the table below for examples). Each Group has several 'Variations', which are
+different ways in which a Group can be read. For example, Group 2 is 'Binary
+Input Events', Variation 1 reads the data without a time value, while Variation
+1 reads the data with absolute time. **By default, this plugin requests all reads**
+**with variation 0, indicating no preference of read type.** The optional `--variation`
+flag can be used to specify a particular variation.
+
+| Group | Name |
+|:-----:|:----:|
+| 1 | Binary Input |
+| 2 | Binary Input Event |
+| 3 | Double-bit Binary Input |
+| 4 | Double-bit Binary Input Event |
+| 10 | Binary Output |
+| 11 | Binary Output Event |
+| 12 | Binary Command |
+| 13 | Binary Command Event |
+| 20 | Counter |
+| 21 | Frozen Counter |
+| 22 | Counter Event |
+| 23 | Frozen Counter Event |
+| 30 | Analog Input |
+| 32 | Analog Input Event |
+| 40 | Analog Output Status |
+| 41 | Analog Output |
+| 42 | Analog Output Event |
+| 43 | Analog Command Event |
+| 50 | Time and Date |
+| 51 | Time and Date CTO |
+| 52 | Time Delay |
+| 60 | Class Data |
+| 70 | File-control |
+| 80 | Internal Indications |
+| 110 | Octet String |
+| 111 | Octet String Event |
+| 112 | Virtual Terminal Output Block |
+| 113 | Virtual Terminal Event Data |
+
+#### Control Models
+
+There are two control philosophies in DNP3 (and this plugin):
+select-before-operate and direct operate.  Using the select-before-operate
+procedure, the controlling station (the Caldera payload) must first send a
+SELECT message, indicating the intention to operate a point. This is followed by
+an OPERATE message to actually execute the operation. If the outstation is set
+for select-before-operate mode and receives an unexpected OPERATE message (one
+not preceded by a SELECT message), it will ignore the command. In the direct
+operate mode, the preceding SELECT message is not required.
+
+The action of an OPERATE command is defined by its control relay output block
+(CROB). Control abilities in this plugin contain the necessary fact templates
+(arguments) to build a CROB. There are three control models that a outstation may implement
+and the CROB must be constructed according to the appropriate model. The models are:
+- Activation model
+- Complementary latch model
+- Complementary two-output model
+
+The **activation model** functions like a push-button, where a single virtual or
+physical output is linked to a specific event, such as "trip breaker" or
+"acknowledge alarm." Pressing the button triggers the associated event. These
+outputs are usually configured in pairs, with separate indices for actions like
+"trip breaker" and "close breaker." **In this model, Control Relay Output Blocks**
+**(CROBs) typically use the 'PULSE_ON' operation type and the 'NUL' trip close**
+**code.** Using the push-button analogy, 'PULSE_ON' represents the act of pressing
+the button, not the action itself. To trip a breaker, the operator sends a
+(NUL, PULSE_ON) CROB to the trip breaker index, and to close the breaker, a
+(NUL, PULSE_ON) CROB is sent to the close breaker index.
+
+The **complementary latch model** operates like a light switch, where a single
+virtual or physical output remains in the on (active) or off (inactive) state
+based on the command it receives. This allows a single index to manage both
+on-off or enable-disable functions. **This model is configured for the 'NUL' trip**
+**close code and uses 'LATCH_ON' and 'LATCH_OFF' operation types to activate or**
+**deactivate the output, respectively.** It is generally used for simple controls,
+such as turning an indicator light on or off, rather than for controlling
+breakers.
+
+The **complementary two-output model** consists of two virtual or physical outputs:
+a close and a trip output. Depending on the command received, one of these
+outputs is momentarily activated, allowing a breaker to be controlled from a
+single index. **This model is configured for the 'TRIP' and 'CLOSE' trip close codes**
+**and uses the 'PULSE_ON' operation type.** To trip a breaker, the operator sends
+a (TRIP, PULSE_ON) CROB to the breaker index, and to close the breaker, a
+(CLOSE, PULSE_ON) CROB is sent to the breaker index.
+
+The CROB also contains on-time and off-time fields to set the time durations of the
+signal. These values are suggestions and may be overridden by the outstation.
 
-    DNP3 Function Code 1 (0x01) READ
-
-    Send a command to an outstation requesting data specified by the objects in the message.
-
-    Usage: dnp3actions.exe <string> -p <int> 
-             <int> <int> read --group <int> --variation <int> --start <int> --end <int>
-    Arguments:
-      ip-address: The IP address of the outstation to read from.
-      port: The port number on the outstation to read from.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      read: Read subcommand.
-      group: The object group of the indicies to read from.
-      variation: The object variation of the indicies to read from.
-      start-index: The starting index from which to read from.
-      end-index: The ending index from which to read from.
-
-    Example:
-       .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 read --group 20 --variation 1 --start 0 --end 12
-
-#### Integrity Poll
-
-    DNP3 Function Code 1 (0x01) READ / GROUP 60 / VAR 1
-
-    Send an integrity poll command to the target outstation requesting data from all classes: static Class 0 or events Class 1/2/3.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> --remote-addr <int> poll
-    Arguments:
-      ip-address: The IP address of the outstation to read from.
-      port: The port number on the outstation to read from.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      poll: Poll subcommand.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 integrity-poll
-
-
-#### Enable Unsolicited Messages
-
-    DNP3 Function Code 20 (0x14) ENABLE_UNSOLICITED
-
-    Enable the outstation to initiate unsolicited responses from points specified by the objects in the request. An unsolicited response allows for outstation self-reporting of event data.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> enable-messages --classes <ints>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      enable-messages: Enable unsolicited messages subcommand.
-      classes: The message classes to enable unsolicited messages for (space-separated list).
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 enable-messages --classes 1 2 3
-
-#### Disable Unsolicited Messages
-
-    DNP3 Function Code 21 (0x15) DISABLE_UNSOLICITED
-
-    Prevent the outstation from initiating unsolicited responses from points specified by the objects in the request. Disabling unsolicited responses can impact the timely receipt of event data.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> disable-messages --classes <ints>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      disable-messages: Disable unsolicited messages subcommand.
-      classes: The message classes to disable unsolicited messages for (space-separated list).
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 disable-messages --classes 1 2
-
-
-#### Cold Restart
-
-    DNP3 Function Code 13 (0x0E) COLD_RESTART
-
-    Send a command to an outstation requesting a complete reset of all hardware and software in the device.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> cold-restart
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      cold-restart: Cold restart subcommand.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 cold-restart
-
-
-#### Warm Restart
-
-    DNP3 Function Code 14 (0x0E) WARM_RESTART
-
-    Send a command to an outstation requesting a reset of only portions of the device.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> warm-restart
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      warm-restart: Warm restart subcommand.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 warm-restart
-
-
-#### Ranged Modulate Breaker Select-Before-Operate
-    DNP3 Function Code 3 (0x03) SELECT
-    DNP3 Function Code 4 (0x04) OPERATE
-
-    Modulate a range of indices using the select-before-operate function code sequence.
-    The first index and every other following will use Operation Type:
-    Pulse Off with Trip Close Code: Close.
-    The second index and every other following will use Operation Type:
-    Pulse On with Trip Close Code: Open. 
-    This means that if you give a start of 0 and and end of 6 then,
-     0, 2, 4, 6 will be Pulse Off and 1, 3, 5, 7 will be Pulse On.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> toggle-sbo-range [OPTIONS]
-    Options:
-      -h,--help                   Print this help message and exit
-      --start INT REQUIRED        The starting index of breakers to toggle off.
-      --end INT REQUIRED          The ending index of breakers to toggle off.
-      -i,--iterations INT REQUIRED
-                                  The number of iterations to toggle the breaker off an on.
-      --trip-on INT:INT in [0 - 2] REQUIRED
-                                  The trip close code to use when pulsing the breaker on (NUL = 0, CLOSE = 1, TRIP = 2).
-      --trip-off INT:INT in [0 - 2] REQUIRED
-                                  The trip close code to use when pulsing the breaker off (NUL = 0, CLOSE = 1, TRIP = 2).
-      --on-time INT REQUIRED      The time in milliseconds to pulse the breaker on.
-      --off-time INT REQUIRED     The time in milliseconds to pulse the breaker off.
-
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      toggle-sbo-range: Toggle breakers on/off (Select-Before-Operate) range subcommand.
-      [OPTIONS]: as above
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 toggle-sbo-range --start 0 --end 12 --iterations 2 --trip-on 2 --trip-off 1 --on-time 500 --off-time 0
-
-
-#### Modulate Breaker Select-Before-Operate
-    DNP3 Function Code 3 (0x03) SELECT
-    DNP3 Function Code 4 (0x04) OPERATE
-
-    Modulate the specified breaker at a high frequency using the select-before-operate function code sequence.
-
-    Usage: dnp3actions.exe <string> -p <int> 
-             <int> <int> toggle-sbo --index <int> --iterations <int> --trip-on <int> 
-                --trip-off <int> --on-time <int> --off-time <int>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      toggle-sbo: Toggle breakers (select-before-operate) subcommand.
-      index: The index of the breaker to toggle on and off at a high frequency.
-      iterations: The number of iterations to toggle the breaker on and off.
-      trip-on: The trip close code to use when pulsing the breaker on (NUL = 0, CLOSE = 1, TRIP = 2).
-      trip-off: The trip close code to use when pulsing the breaker off (NUL = 0, CLOSE = 1, TRIP = 2).
-      on-time: The time in milliseconds to pulse the breaker on.
-      off-time: The time in milliseconds to pulse the breaker off.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 toggle-sbo --index 8 --iterations 2 --trip-on 2 --trip-off 1 --on-time 500 --off-time 0
-
-#### Toggle OFF Breakers Select-Before-Operate
-    DNP3 Function Code 3 (0x03) SELECT
-    DNP3 Function Code 4 (0x04) OPERATE
-
-    Toggle OFF a range of specified breakers using the select-before-operate function code sequence.
-
-    Usage: dnp3actions.exe <string> -p <int> 
-             <int> <int> sbo-off --start <int> --end <int> --step <int> -t 1
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      sbo-off: Toggle breakers off (select-before-operate) subcommand.
-      start-index: The starting index of breakers to toggle off.
-      end-index: The ending index of breakers to toggle off.
-      step: Total value to increment on each interation, between the start and end indices.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 sbo-off --start 0 --end 12 --step 5 -t 1
-
-####  Toggle ON Breakers Select-Before-Operate
-    DNP3 Function Code 3 (0x03) SELECT
-    DNP3 Function Code 4 (0x04) OPERATE
-
-    Toggle ON a range of specified breakers using the select-before-operate function code sequence.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> sbo-on --start <int> --end <int> --step <int> -t 2
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      sbo-on: Toggle breakers on (select-before-operate) subcommand.
-      start-index: The starting index of breakers to toggle on.
-      end-index: The ending index of breakers to toggle on.
-      step: Total value to increment on each interation, between the start and end indices.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 sbo-on --start 0 --end 12 --step 5 -t 2
-
-#### Modulate Breaker Direct-Operate
-    DNP3 Function Code 5 (0x05) DIRECT_OPERATE
-
-    Modulate the specified breaker at a high frequency using the direct-operate function code.
-
-    Usage: dnp3actions.exe <string> -p <int> 
-             <int> <int> toggle-do --index <int> --iterations <int> --trip-on <int>
-                --trip-off <int> --on-time <int> --off-time <int>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      toggle-do: Toggle breakers (direct-operate) subcommand.
-      index: The index of the breaker to toggle on and off at a high frequency.
-      iterations: The number of iterations to toggle the breaker on and off.
-      trip-on: The trip close code to use when pulsing the breaker on (NUL = 0, CLOSE = 1, TRIP = 2).
-      trip-off: The trip close code to use when pulsing the breaker off (NUL = 0, CLOSE = 1, TRIP = 2).
-      on-time: The time in milliseconds to pulse the breaker on.
-      off-time: The time in milliseconds to pulse the breaker off.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 toggle-do --index 8 --iterations 2 --trip-on 2 --trip-off 1 --on-time 500 --off-time 0
-
-
-#### Toggle OFF Breakers Direct-Operate
-    DNP3 Function Code 5 (0x05) DIRECT_OPERATE
-
-    Toggle OFF a range of specified breakers using the direct-operate function code.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> toggle-off-do --start <int> --end <int>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      toggle-off-do: Toggle breakers off (direct-operate) subcommand.
-      start-index: The starting index of breakers to toggle off.
-      end-index: The ending index of breakers to toggle off.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 toggle-off-do --start 0 --end 12
-
-#### Toggle ON Breakers Direct-Operate
-    DNP3 Function Code 5 (0x05) DIRECT_OPERATE
-
-    Toggle ON a range of specified breakers using the direct-operate function code.
-
-    Usage: dnp3actions.exe <string> -p <int>
-             <int> <int> toggle-on-do --start <int> --end <int>
-    Arguments:
-      ip-address: The IP address of the outstation to control.
-      port: The port number of the outstation to control.
-      local-link-address: The link layer address of the local DNP3 client.
-      remote-link-address: The link layer address of the remote DNP3 outstation.
-      toggle-on-do: Toggle breakers on (direct-operate) subcommand.
-      start-index: The starting index of breakers to toggle on.
-      end-index: The ending index of breakers to toggle on.
-
-    Example:
-      .\dnp3actions.exe 127.0.0.1 -p 20000 1 10 toggle-on-do --start 0 --end 12
-
-
-## Source Code
-
-The binaries for this plugin are produced by compiling the [C++ code in the src directory](/src/), which is built using the [OpenDNP3](https://github.com/dnp3/opendnp3/tree/release/) library.
 
 ## Copyright Notice
-
-As of September 2nd, 2022, the OpenDNP3 project reached end-of-life. The latest and final release is 3.1.2 on April 22nd, 2022. The source may still be found [on GitHub](https://github.com/dnp3/opendnp3).
+As of September 2nd, 2022, the OpenDNP3 project was archived by the project owner. The latest and final release is 3.1.2 on April 22nd, 2022. The source may still be found [on GitHub](https://github.com/dnp3/opendnp3).
 
 OpenDNP3 is (c) to Green Energy Corp (2010, 2011), Step Function I/O LLC (2013-2022, 2020-2022), and various contributors (2010-2022). Note that Automatak rebranded as Step Function I/O.
 

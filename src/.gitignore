@@ -1,34 +1,17 @@
-*.o
-*.pyc
-*.pyd
-*__pycache__*
-
 # OSX
 # Folder view configuration files
 .DS_Store
 Desktop.ini
 
-#kdevelop
-.kdev4
-
-# cmake stuff
+#cmake
 CMakeCache.txt
 CMakeFiles/
 cmake_install.cmake
 install_manifest.txt
 
-#cmake
-/build
-/CMakeCache.txt
-/CMakeFiles
-/cmake_install.cmake
-/install_manifest.txt
-/libasiodnp3.so
-/libasiopal.so
-/libopendnp3.so
-/libopenpal.so
-/testopendnp3
-/testopenpal
+build/
+out/
+build_x64/
 
 #doxygen
 doc
@@ -38,9 +21,6 @@ doc
 **/**/target
 **/.idea
 
-# out-of-directory builds
-/build*
-
 #clion
 /cmake-build-*
 
@@ -49,3 +29,6 @@ doc
 
 # VS Code
 .vscode/
+
+# Third Party
+third_party/opendnp3*

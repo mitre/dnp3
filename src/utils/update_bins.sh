@@ -1,1 +1,0 @@
-cp ../build/src/*/*.exe ../bin/

@@ -1,6 +1,0 @@
-id: f1c40891-944d-4fe5-99bb-ea99a0ada34a
-name: DNP3 Actions Binary
-standard_payloads:
-  dnp3actions.exe:
-    description: DNP3 Actions (Windows) - commandline interface for set of DNP3 commands
-    id: 5f1bbd1e-ab78-4daa-8392-1d2e6dd511bf

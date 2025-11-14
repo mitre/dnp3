@@ -35,22 +35,27 @@ function handleBoxExit(e){
     </p>
 
     <h3>Abilities</h3>
-    <div class="columns abilities is-multiline">
-        <div v-for="a in abilities" class="column is-one-quarter p-1 m-0">
-            <div class="box otbox p-3 m-1" @mouseleave="handleBoxExit">
-                <div class="abilitytags">
-                    <span class="tag tactic is-dark m-0 mb-2">{{ a.tactic }}</span>
-                </div>
-                <div class="inner_otbox">
-                    <div>
-                        <span class="has-text-weight-bold">{{a.name}}</span>
-                        <span>&nbsp;({{a.technique_id}}: {{a.technique_name}})</span>
+    <table class="table abilities-table">
+        <thead>
+            <tr class="table-header">
+                <th>Name</th>
+                <th>ATT&amp;CK Technique</th>
+                <th>Description</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="a in abilities">
+                <td>{{a.name}}</td>
+                <td>
+                    <div class="abilitytags">
+                        <span class="tag tactic is-dark m-0 mb-1">{{a.tactic}}</span><br>
                     </div>
-                    <div class="help mb-0">{{a.description}}</div>
-                </div>
-            </div>
-        </div>
-    </div>
+                    {{a.technique_name}} ({{a.technique_id}})
+                </td>
+                <td v-html="a.description"></td>
+            </tr>
+        </tbody>
+    </table>
     <h3>Adversaries</h3>
     <p>There are no custom {{ name }} adversaries at this time.</p>
 </template>
@@ -80,20 +85,16 @@ a {
 a:hover {
     color: #8b00ff; 
 }
-.otbox{
-    height: 200px;
-    background-color: rgba(139, 0, 255, 0.4); 
-    overflow-y: hidden;
-    overflow-x: wrap;
+.abilities-table td:nth-child(1) { /* Ability name column */
+    font-weight: bold;
 }
-.otbox:hover{
-    outline: 3px;
-    outline-color: #8B00FE; 
-    background-color: rgba(139, 0, 255, 0.7); 
-    outline-style: solid;
-    overflow-y: scroll;
+.abilities-table td:nth-child(3) { /* Description column */
+    width: 40%;
 }
-.inner_otbox{
-    margin-right: 15px;
+.abilities-table tbody tr:nth-child(odd) {
+    background-color: rgba(139, 0, 255, 0.1); 
+}
+.abilities-table tbody tr:hover {
+    background-color: rgba(139, 0, 255, 0.3); 
 }
 </style>

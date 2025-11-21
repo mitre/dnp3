@@ -227,26 +227,27 @@ int main(int argc, char* argv[])
 
         toggle_cmd->final_callback(
             [&client, &op_mode, &toggle_crob_args, &trip_indices, &close_indices, &iterations, &delay_ms]() {
-                auto mode = OperateModeSpec::from_string(op_mode);
-                auto crob = toggle_crob_args.Create();
 
-                for (uint8_t i = 0; i < iterations; i++)
+            auto mode = OperateModeSpec::from_string(op_mode);
+            // Trip crob: PULSE_ON / TRIP
+            toggle_crob_args.trip_code = "TRIP";
+            auto tripCrob = toggle_crob_args.Create();
+            // Close crob: PULSE_ON / CLOSE
+            toggle_crob_args.trip_code = "CLOSE";
+            auto closeCrob = toggle_crob_args.Create();
+
+            for (uint8_t i = 0; i < iterations; i++)
+            {
+                operate(client, tripCrob, trip_indices, mode);
+                std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
+                operate(client, closeCrob, close_indices, mode);
+
+                if (i < iterations - 1)
                 {
-                    // Trip operations
-                    operate(client, crob, trip_indices, mode);
-
-                    // Fixed delay between operations
                     std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-
-                    // Close operations
-                    operate(client, crob, close_indices, mode);
-
-                    if (i < iterations - 1)
-                    {
-                        std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-                    }
                 }
-            });
+            }
+        });
     }
 
     /*********************************
@@ -267,21 +268,19 @@ int main(int argc, char* argv[])
         toggle_cmd->add_option("--delay", delay_ms, "delay between trip and close operations in ms (default: 2000ms)");
 
         toggle_cmd->final_callback([&client, &op_mode, &toggle_crob_args, &indices, &iterations, &delay_ms]() {
+
             auto mode = OperateModeSpec::from_string(op_mode);
+            // Trip crob: PULSE_ON / TRIP
+            toggle_crob_args.trip_code = "TRIP";
+            auto tripCrob = toggle_crob_args.Create();
+            // Close crob: PULSE_ON / CLOSE
+            toggle_crob_args.trip_code = "CLOSE";
+            auto closeCrob = toggle_crob_args.Create();
+
             for (uint8_t i = 0; i < iterations; i++)
             {
-                // Trip operation - PULSE_ON with TRIP code
-                toggle_crob_args.op_type = "PULSE_ON";
-                toggle_crob_args.trip_code = "TRIP";
-                auto tripCrob = toggle_crob_args.Create();
                 operate(client, tripCrob, indices, mode);
-
-                // Fixed delay between operations
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-
-                // Close operation - PULSE_ON with CLOSE code
-                toggle_crob_args.trip_code = "CLOSE";
-                auto closeCrob = toggle_crob_args.Create();
                 operate(client, closeCrob, indices, mode);
 
                 if (i < iterations - 1)

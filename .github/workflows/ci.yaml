@@ -37,6 +37,33 @@ jobs:
           path: src/bin/dnp3-outstation
           retention-days: 1
 
+  build-linux-arm:
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+      - name: Build payload
+        run: |
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build src/build --config Release -- -j$(nproc)
+          mv src/bin/dnp3-actions src/bin/dnp3-actions_linux-arm
+          mv src/bin/dnp3-outstation src/bin/dnp3-outstation_linux-arm
+      - name: Upload payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-actions_linux-arm
+          path: src/bin/dnp3-actions_linux-arm
+          retention-days: 1
+      - name: Upload outstation
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-outstation_linux-arm
+          path: src/bin/dnp3-outstation_linux-arm
+          retention-days: 1
+
   build-darwin:
     runs-on: macos-latest
     steps:

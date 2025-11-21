@@ -114,6 +114,7 @@ jobs:
   create-pr:
     needs:
       - build-linux
+      - build-linux-arm
       - build-darwin
       - build-windows
     runs-on: ubuntu-latest

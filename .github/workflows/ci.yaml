@@ -2,7 +2,7 @@ name: Build Payloads
 
 on:
   push:
-    branches: [add-ci]
+    branches: [main]
   workflow_dispatch:
 
 permissions:

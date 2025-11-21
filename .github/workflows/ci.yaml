@@ -1,0 +1,110 @@
+name: Build Payloads
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install build tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build
+      - name: Build payload
+        run: |
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build src/build --config Release -- -j$(nproc)
+      - name: Upload payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-actions
+          path: src/bin/dnp3-actions
+          retention-days: 1
+      - name: Upload outstation
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-outstation
+          path: src/bin/dnp3-outstation
+          retention-days: 1
+
+  build-darwin:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install build tools
+        run: |
+          brew update
+          brew install cmake ninja || true
+      - name: Build payload
+        run: |
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build src/build --config Release -- -j$(nproc)
+      - name: Upload payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-actions_darwin
+          path: src/bin/dnp3-actions_darwin
+          retention-days: 1
+      - name: Upload outstation
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-outstation_darwin
+          path: src/bin/dnp3-outstation_darwin
+          retention-days: 1
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v6
+      - name: Build payload
+        shell: powershell
+        run: |
+          cmake -S src -B src/build -DCMAKE_BUILD_TYPE=Release
+          cmake --build src/build --config Release
+      - name: Upload payload
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-actions.exe
+          path: src\bin\dnp3-actions.exe
+          retention-days: 1
+      - name: Upload outstation
+        uses: actions/upload-artifact@v4
+        with:
+          name: dnp3-outstation.exe
+          path: src\bin\dnp3-outstation.exe
+          retention-days: 1
+
+  create-pr:
+    needs:
+      - build-linux
+      - build-darwin
+      - build-windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Download payloads
+        uses: actions/download-artifact@v4
+        with:
+          pattern: dnp3*
+          merge-multiple: true
+          path: payloads/
+
+      - name: Create PR
+        uses: peter-evans/create-pull-request@v6
+        with:
+          base: main
+          branch: ci/update-payloads
+          title: Update payloads
+          commit-message: "chore: update payloads"
+          body: Automated update of payloads.
+          add-paths: payloads
+          delete-branch: true

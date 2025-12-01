@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
     const opendnp3::LogLevels levels = opendnp3::levels::NORMAL | opendnp3::levels::ALL_APP_COMMS;
 
     ConnectionSettings connection_args;
-    const uint16_t startup_ms = 10; 
-    const uint16_t shutdown_ms = 10; 
+    const uint16_t startup_ms = 10;
+    const uint16_t shutdown_ms = 10;
 
     /*************************
       TCP Client Subcommmand
@@ -134,7 +134,7 @@ int main(int argc, char* argv[])
         read_cmd->final_callback(
             [&client, &group, &variation, &start, &end]() { read(client, group, variation, start, end); });
     }
-    
+
     /******************************
       'integrity-poll' subcommand
     *******************************/
@@ -202,9 +202,13 @@ int main(int argc, char* argv[])
     ***************************/
     std::vector<uint16_t> trip_indices;
     std::vector<uint16_t> close_indices;
-    CrobSettings toggle_crob_args;
+    CrobSettings trip_crob_args;
+    trip_crob_args.trip_code = "TRIP";
+    CrobSettings close_crob_args;
+    close_crob_args.trip_code = "CLOSE";
     uint32_t delay_ms = 2000;
     uint8_t iterations = 1;
+    bool start_with_close = false;
 
     /*********************************
       'toggle-activation' subcommand
@@ -220,27 +224,50 @@ int main(int argc, char* argv[])
         toggle_cmd->add_option("--close-indices", close_indices, "comma separated list of points to close")
             ->required()
             ->delimiter(',');
-        toggle_cmd->add_option("--on", toggle_crob_args.on_time, "signal on-time in ms (default: 100ms)");
-        toggle_cmd->add_option("--off", toggle_crob_args.off_time, "signal off-time in ms (default: 100ms)");
+        toggle_cmd->add_flag("--start-with-close", start_with_close, "start the toggle with a close operation");
+        toggle_cmd->add_option("--on", trip_crob_args.on_time, "signal on-time in ms (default: 100ms)");
+        toggle_cmd->add_option("--off", trip_crob_args.off_time, "signal off-time in ms (default: 100ms)");
         toggle_cmd->add_option("--iterations", iterations, "number of times to repeat the operation (default: 1)");
         toggle_cmd->add_option("--delay", delay_ms, "delay between trip and close operations in ms (default: 2000ms)");
+        toggle_cmd->add_option("--trip-op-type", trip_crob_args.op_type, "trip operation type (default: PULSE_ON)")
+            ->check(CLI::IsMember(op_types));
+        toggle_cmd->add_option("--trip-tcc", trip_crob_args.trip_code, "trip tcc (default: TRIP)")
+            ->check(CLI::IsMember(trip_codes));
+        toggle_cmd->add_option("--close-op-type", close_crob_args.op_type, "close operation type (default: PULSE_ON)")
+            ->check(CLI::IsMember(op_types));
+        toggle_cmd->add_option("--close-tcc", close_crob_args.trip_code, "close tcc (default: CLOSE)")
+            ->check(CLI::IsMember(trip_codes));
 
-        toggle_cmd->final_callback(
-            [&client, &op_mode, &toggle_crob_args, &trip_indices, &close_indices, &iterations, &delay_ms]() {
+        toggle_cmd->final_callback([&client, &op_mode, &trip_crob_args, &close_crob_args, &trip_indices, &close_indices,
+                                    &iterations, &delay_ms, &start_with_close]() {
+            close_crob_args.on_time = trip_crob_args.on_time;
+            close_crob_args.off_time = trip_crob_args.off_time;
+
+            auto trip_crob = trip_crob_args.Create();
+            auto close_crob = close_crob_args.Create();
 
             auto mode = OperateModeSpec::from_string(op_mode);
-            // Trip crob: PULSE_ON / TRIP
-            toggle_crob_args.trip_code = "TRIP";
-            auto tripCrob = toggle_crob_args.Create();
-            // Close crob: PULSE_ON / CLOSE
-            toggle_crob_args.trip_code = "CLOSE";
-            auto closeCrob = toggle_crob_args.Create();
-
             for (uint8_t i = 0; i < iterations; i++)
             {
-                operate(client, tripCrob, trip_indices, mode);
+                if (start_with_close)
+                {
+                    operate(client, close_crob, close_indices, mode);
+                }
+                else
+                {
+                    operate(client, trip_crob, trip_indices, mode);
+                }
+
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-                operate(client, closeCrob, close_indices, mode);
+
+                if (start_with_close)
+                {
+                    operate(client, trip_crob, trip_indices, mode);
+                }
+                else
+                {
+                    operate(client, close_crob, close_indices, mode);
+                }
 
                 if (i < iterations - 1)
                 {
@@ -262,26 +289,50 @@ int main(int argc, char* argv[])
         toggle_cmd->add_option("--indices", indices, "comma separated list of points to operate")
             ->required()
             ->delimiter(',');
-        toggle_cmd->add_option("--on", toggle_crob_args.on_time, "signal on-time in ms (default: 100ms)");
-        toggle_cmd->add_option("--off", toggle_crob_args.off_time, "signal off-time in ms (default: 100ms)");
+        toggle_cmd->add_flag("--start-with-close", start_with_close, "start the toggle with a close operation");
+        toggle_cmd->add_option("--on", trip_crob_args.on_time, "signal on-time in ms (default: 100ms)");
+        toggle_cmd->add_option("--off", trip_crob_args.off_time, "signal off-time in ms (default: 100ms)");
         toggle_cmd->add_option("--iterations", iterations, "number of times to repeat the operation (default: 1)");
         toggle_cmd->add_option("--delay", delay_ms, "delay between trip and close operations in ms (default: 2000ms)");
+        toggle_cmd->add_option("--trip-op-type", trip_crob_args.op_type, "trip operation type (default: PULSE_ON)")
+            ->check(CLI::IsMember(op_types));
+        toggle_cmd->add_option("--trip-tcc", trip_crob_args.trip_code, "trip tcc (default: TRIP)")
+            ->check(CLI::IsMember(trip_codes));
+        toggle_cmd->add_option("--close-op-type", close_crob_args.op_type, "close operation type (default: PULSE_ON)")
+            ->check(CLI::IsMember(op_types));
+        toggle_cmd->add_option("--close-tcc", close_crob_args.trip_code, "close tcc (default: CLOSE)")
+            ->check(CLI::IsMember(trip_codes));
 
-        toggle_cmd->final_callback([&client, &op_mode, &toggle_crob_args, &indices, &iterations, &delay_ms]() {
+        toggle_cmd->final_callback([&client, &op_mode, &trip_crob_args, &close_crob_args, &indices, &iterations,
+                                    &delay_ms, &start_with_close]() {
+            close_crob_args.on_time = trip_crob_args.on_time;
+            close_crob_args.off_time = trip_crob_args.off_time;
+
+            auto trip_crob = trip_crob_args.Create();
+            auto close_crob = close_crob_args.Create();
 
             auto mode = OperateModeSpec::from_string(op_mode);
-            // Trip crob: PULSE_ON / TRIP
-            toggle_crob_args.trip_code = "TRIP";
-            auto tripCrob = toggle_crob_args.Create();
-            // Close crob: PULSE_ON / CLOSE
-            toggle_crob_args.trip_code = "CLOSE";
-            auto closeCrob = toggle_crob_args.Create();
-
             for (uint8_t i = 0; i < iterations; i++)
             {
-                operate(client, tripCrob, indices, mode);
+                if (start_with_close)
+                {
+                    operate(client, close_crob, indices, mode);
+                }
+                else
+                {
+                    operate(client, trip_crob, indices, mode);
+                }
+
                 std::this_thread::sleep_for(std::chrono::milliseconds(delay_ms));
-                operate(client, closeCrob, indices, mode);
+
+                if (start_with_close)
+                {
+                    operate(client, trip_crob, indices, mode);
+                }
+                else
+                {
+                    operate(client, close_crob, indices, mode);
+                }
 
                 if (i < iterations - 1)
                 {
@@ -318,7 +369,7 @@ int main(int argc, char* argv[])
 
     // Parse arguments
     CLI11_PARSE(app, argc, argv);
-    // Sleep to allow communications thread to execute 
+    // Sleep to allow communications thread to execute
     std::this_thread::sleep_for(std::chrono::milliseconds(shutdown_ms));
     return 0;
 }

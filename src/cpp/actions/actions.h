@@ -16,14 +16,8 @@
 #include <opendnp3/master/PrintingSOEHandler.h>
 #include <opendnp3/util/StaticOnly.h>
 
-#include <chrono>
-#include <iomanip>
-#include <iostream>
-#include <list>
 #include <memory>
 #include <string>
-#include <thread>
-#include <utility>
 #include <vector>
 
 class ConnectionSettings

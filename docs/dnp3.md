@@ -74,11 +74,10 @@ This section describes how to initially deploy and execute the abilities present
 3. Deploy the Caldera agent to the viable host.
 4. Run a combination of the DNP3 plugin abilities to achieve the desired effect.  
 
-_If you don't know where to begin, try using [DNP3 - Integrity Poll](#dnp3---integrity-poll) read all of the data on a device._
+_If you don't know where to begin, try using [DNP3 - Integrity Poll](#dnp3---integrity-poll) to read all of the data on a device._
 
 ```{tip}
-Reference the Caldera training plugin for a step-by-step tutorial on how to
-deploy an agent and run abilities via an operation.
+Reference the Caldera training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via an operation.
 ```
 
 

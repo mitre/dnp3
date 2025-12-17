@@ -68,12 +68,17 @@ This section describes how to initially deploy and execute the abilities present
 
 ### Deployment
 1. Identify the target system you would like to communicate with via the DNP3 protocol.
-2. Identify a viable host for the Caldera agent that will be sending DNP3 messages to the target system. viable host for the Caldera agent that will be sending DNP3 messages to the target system.
+2. Identify a viable host for the Caldera agent that will be sending DNP3
+   messages to the target system. A viable host has a network connection to the target 
+   system and has an architecture that is compatible with one of the plugin's payloads.
 3. Deploy the Caldera agent to the viable host.
 4. Run a combination of the DNP3 plugin abilities to achieve the desired effect.  
 
+_If you don't know where to begin, try using [DNP3 - Integrity Poll](#dnp3---integrity-poll) read all of the data on a device._
+
 ```{tip}
-Reference the Caldera training plugin for a step-by-step tutorial on how to deploy an agent and run abilities via an operation.
+Reference the Caldera training plugin for a step-by-step tutorial on how to
+deploy an agent and run abilities via an operation.
 ```
 
 

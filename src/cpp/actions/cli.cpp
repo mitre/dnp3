@@ -21,8 +21,8 @@ int main(int argc, char* argv[])
     const opendnp3::LogLevels levels = opendnp3::levels::NORMAL | opendnp3::levels::ALL_APP_COMMS;
 
     ConnectionSettings connection_args;
-    const uint16_t startup_ms = 10;
-    const uint16_t shutdown_ms = 10;
+    const uint16_t startup_ms = 100;
+    const uint16_t shutdown_ms = 100;
 
     /*************************
       TCP Client Subcommmand

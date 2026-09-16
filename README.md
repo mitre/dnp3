@@ -23,3 +23,16 @@ git clone --recursive https://github.com/mitre/caldera.git
 3. Start the Caldera server
 4. Create a new Operation, optionally using the fact source from step 2.
 5. Use "Add Potential Link" to run a specific ability from this plugin. Fact values can can be entered manually, or selected from a fact source.
+
+## Virtual OT Simulators
+
+To help you test the DNP3 plugin without any additional hardware requirements,
+MITRE provides open-source simulators that act as software targets.
+
+### [Grid Watch](https://github.com/mitre/grid-watch)
+
+Grid Watch is a simulated electrical grid outstation that mimics the behavior of
+a real-world DNP3 device, letting you test the DNP3 plugin without physical
+hardware.
+
+To get started, follow the instructions [here](https://github.com/mitre/grid-watch).

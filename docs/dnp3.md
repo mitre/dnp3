@@ -1,7 +1,7 @@
 # DNP3
 The DNP3 plugin for Caldera provides adversary emulation abilities specific to the DNP3 control systems protocol.
 
-v2.0 released 05 Dec 2024
+v2.0.3 released 11 Nov 2026
 
 ## Overview
 The DNP3 plugin provides __11__ unique abilities specific to the DNP3 protocol offered for both serial and TCP connections (22 total abilities). This is accomplished not through exploitation, but rather by leveraging native functionality within the protocol. 

@@ -90,7 +90,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Initial stable version of the DNP3 plugin, part of [MITRE Caldera™ for OT](https://github.com/mitre/caldera-ot). Provides 13 unique Caldera adversary emulation abilities specific to the DNP3 protocol.
 
-[unreleased]: https://github.com/mitre/dnp3/compare/v2.0.2...HEAD
+[unreleased]: https://github.com/mitre/dnp3/compare/v2.0.3...HEAD
+[2.0.3]: https://github.com/mitre/dnp3/compare/v2.0.2...v2.0.3
 [2.0.2]: https://github.com/mitre/dnp3/compare/v2.0.1...v2.0.2
 [2.0.1]: https://github.com/mitre/dnp3/compare/v2.0.0...v2.0.1
 [2.0.0]: https://github.com/mitre/dnp3/compare/v1.1.0...v2.0.0
